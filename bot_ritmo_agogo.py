@@ -9,22 +9,22 @@ async def unirme(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     user = update.effective_user
     
-    # Corregido: antes decía 'partidas' aquí
+    # Corregido: antes decÃ­a 'partidas' aquÃ­
     if chat_id not in rondas:
         rondas[chat_id] = {"palabras": {}, "jugadores": [], "turno_idx": 0, "activa": False}
     
     if not any(j['id'] == user.id for j in rondas[chat_id]["jugadores"]):
         rondas[chat_id]["jugadores"].append({"id": user.id, "name": user.first_name})
-        await update.message.reply_text(f"? **{user.first_name}** se unió ?.")
+        await update.message.reply_text(f"? **{user.first_name}** se uniÃ³ ?.")
     else:
-        await update.message.reply_text("Ya estás dentro, no te preocupes!")
+        await update.message.reply_text("Ya estÃ¡s dentro, no te preocupes!")
 
 async def iniciar_ritmo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     
-    # Corregido: faltaba el paréntesis en el len()
+    # Corregido: faltaba el parÃ©ntesis en el len()
     if chat_id not in rondas or len(rondas[chat_id]["jugadores"]) < 2:
-        await update.message.reply_text("Se necesitan mínimo 2 para poder jugar!")
+        await update.message.reply_text("Se necesitan mÃ­nimo 2 para poder jugar!")
         return
 
     # Capturar el tema (por ejemplo: /ritmo frutas)
@@ -42,9 +42,9 @@ async def iniciar_ritmo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_animation(
         animation = gif_start,
         caption = (
-            f"¡RITMO  AGO GO! \n"
+            f"Â¡RITMO  AGO GO! \n"
             f"Diga usted nombres de... **{tema.upper()}**\n\n"
-            f"Por ejemplo... ¡empieza **{primero}**! ??"
+            f"Por ejemplo... Â¡empieza **{primero}**! ??"
         ),
         parse_mode='Markdown'
     )
@@ -68,7 +68,7 @@ async def manejar_mensajes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         quien_fue = estado["palabras"][texto_usuario]
         gif_end = "https://i.pinimg.com/originals/4f/67/6e/4f676ee6c7f543d92a2ea28109758120.gif"
         await update.message.reply_animation(
-            f"Esa ya la había dicho **{quien_fue}**.\n"
+            f"Esa ya la habÃ­a dicho **{quien_fue}**.\n"
             f"Perdiste, {jugador_actual['name']}. jaksja",
             parse_mode='Markdown'
         )
@@ -78,7 +78,7 @@ async def manejar_mensajes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         estado["turno_idx"] = (estado["turno_idx"] + 1) % len(estado["jugadores"])
         
         proximo = estado["jugadores"][estado["turno_idx"]]["name"]
-        await update.message.reply_text(f"? ¡Sigue! Turno de: **{proximo}**", parse_mode='Markdown')
+        await update.message.reply_text(f"? Â¡Sigue! Turno de: **{proximo}**", parse_mode='Markdown')
 
 if __name__ == '__main__':
     TOKEN = os.getenv("TOKEN_TELEGRAM")
