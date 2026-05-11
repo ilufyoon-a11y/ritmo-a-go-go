@@ -44,7 +44,7 @@ async def iniciar_ritmo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         caption = (
             f"¡RITMO  AGO GO! \n"
             f"Diga usted nombres de... **{tema.upper()}**\n\n"
-            f"Por ejemplo... ¡empieza **{primero}**! ??"
+            f"Por ejemplo... ¡empieza **{primero}**!"
         ),
         parse_mode='Markdown'
     )
@@ -69,7 +69,7 @@ async def manejar_mensajes(update: Update, context: ContextTypes.DEFAULT_TYPE):
         gif_end = "https://i.pinimg.com/originals/4f/67/6e/4f676ee6c7f543d92a2ea28109758120.gif"
         await update.message.reply_animation(
             f"Esa ya la había dicho **{quien_fue}**.\n"
-            f"Perdiste, {jugador_actual['name']}. jaksja",
+            f"Perdiste, {jugador_actual['name']} :(",
             parse_mode='Markdown'
         )
         estado["activa"] = False
