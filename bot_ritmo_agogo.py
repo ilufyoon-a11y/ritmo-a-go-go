@@ -3,6 +3,7 @@ import random
 from threading import Thread
 from flask import Flask
 from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 # --- 1. DESPERTADOR PARA RENDER (FLASK) ---
@@ -24,19 +25,40 @@ def keep_alive():
 # --- 2. LÓGICA DEL BOT ---
 rondas = {}
 
+async def mensaje_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # 1. Definimos el botón correctamente usando InlineKeyboardButton
+    boton_join = InlineKeyboardButton("UNIRME!", callback_data="unirme_click")
+    
+    # 2. Metemos ese botón dentro del teclado (KeyboardMarkup)
+    # Lo ponemos dentro de una lista de listas [[ ]]
+    reply_markup = InlineKeyboardMarkup([[boton_join]])
+
+    await update.message.reply_text(
+        "¡Bienvenidos al Ritmo A Go-Go! Presiona el botón para unirte",
+        reply_markup=reply_markup
+    )
+
 async def unirme(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.effective_chat.id
-    user = update.effective_user
+    # IMPORTANTE: Cuando es por botón, usamos update.callback_query
+    query = update.callback_query
+    
+    # Le avisamos a Telegram que ya recibimos el clic (quita el relojito)
+    await query.answer()
+    
+    chat_id = query.message.chat.id
+    user = query.from_user  # Obtenemos al usuario que presionó el botón
     
     if chat_id not in rondas:
         rondas[chat_id] = {"palabras": {}, "jugadores": [], "turno_idx": 0, "activa": False}
     
     if not any(j['id'] == user.id for j in rondas[chat_id]["jugadores"]):
         rondas[chat_id]["jugadores"].append({"id": user.id, "name": user.first_name})
-        await update.message.reply_text(f"✅ **{user.first_name}** se unió al ritmo.")
+        # Editamos el mensaje original o enviamos uno nuevo
+        await query.message.reply_text(f"✅ **{user.first_name}** se unió al ritmo.")
     else:
-        await update.message.reply_text("Ya estás dentro, ¡no te preocupes!")
-
+        # Usamos query.message para responder en el chat correcto
+        await query.message.reply_text(f"{user.first_name}, Ya estas adentro. No te preocupes!")
+        
 async def iniciar_ritmo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     
