@@ -2,9 +2,9 @@ import os
 import random
 from threading import Thread
 from flask import Flask
-from telegram import Update
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+# Agregamos CallbackQueryHandler aquí abajo 👇
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 
 # --- 1. DESPERTADOR PARA RENDER (FLASK) ---
 app_web = Flask('')
@@ -26,39 +26,30 @@ def keep_alive():
 rondas = {}
 
 async def mensaje_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # 1. Definimos el botón correctamente usando InlineKeyboardButton
-    boton_join = InlineKeyboardButton("UNIRME!", callback_data="unirme_click")
-    
-    # 2. Metemos ese botón dentro del teclado (KeyboardMarkup)
-    # Lo ponemos dentro de una lista de listas [[ ]]
+    boton_join = InlineKeyboardButton("UNIRME! 🎤", callback_data="unirme_click")
     reply_markup = InlineKeyboardMarkup([[boton_join]])
 
     await update.message.reply_text(
-        "¡Bienvenidos al Ritmo A Go-Go! Presiona el botón para unirte",
+        "¡Bienvenidos al Ritmo A Go-Go! Presiona el botón para unirte:",
         reply_markup=reply_markup
     )
 
 async def unirme(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # IMPORTANTE: Cuando es por botón, usamos update.callback_query
     query = update.callback_query
-    
-    # Le avisamos a Telegram que ya recibimos el clic (quita el relojito)
-    await query.answer()
+    await query.answer() # Esto quita el relojito de carga en el botón
     
     chat_id = query.message.chat.id
-    user = query.from_user  # Obtenemos al usuario que presionó el botón
+    user = query.from_user  # En botones usamos query.from_user
     
     if chat_id not in rondas:
         rondas[chat_id] = {"palabras": {}, "jugadores": [], "turno_idx": 0, "activa": False}
     
     if not any(j['id'] == user.id for j in rondas[chat_id]["jugadores"]):
         rondas[chat_id]["jugadores"].append({"id": user.id, "name": user.first_name})
-        # Editamos el mensaje original o enviamos uno nuevo
         await query.message.reply_text(f"✅ **{user.first_name}** se unió al ritmo.")
     else:
-        # Usamos query.message para responder en el chat correcto
-        await query.message.reply_text(f"{user.first_name}, Ya estas adentro. No te preocupes!")
-        
+        await query.message.reply_text(f"Ya estás adentro, {user.first_name}. ¡No te preocupes! jaksja")
+
 async def iniciar_ritmo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     
@@ -131,12 +122,18 @@ if __name__ == '__main__':
     if not TOKEN:
         print("❌ Error: No se encontró el TOKEN_TELEGRAM")
     else:
-        # Iniciamos el servidor web para Render
         keep_alive()
-        
         app = ApplicationBuilder().token(TOKEN).build()
         
-        app.add_handler(CommandHandler("unirme", unirme))
+        # --- LOS HANDLERS (AQUÍ ESTABA EL TRUCO) ---
+        
+        # 1. El comando /start ahora lanza el mensaje con botón
+        app.add_handler(CommandHandler("start", mensaje_join))
+        
+        # 2. El oído para el botón (reemplaza al CommandHandler de "unirme")
+        app.add_handler(CallbackQueryHandler(unirme, pattern="unirme_click"))
+        
+        # 3. El resto de comandos y mensajes
         app.add_handler(CommandHandler("ritmo", iniciar_ritmo))
         app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), manejar_mensajes))
         
