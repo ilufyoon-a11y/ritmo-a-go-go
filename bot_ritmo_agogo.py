@@ -26,7 +26,7 @@ def keep_alive():
 rondas = {}
 
 async def mensaje_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    boton_join = InlineKeyboardButton("UNIRME! 🎤", callback_data="unirme_click")
+    boton_join = InlineKeyboardButton("៹    𔘓   𝐔𝐍𝐈𝐑𝐌𝐄    !    ꞌꞋ ࣪  ", callback_data="unirme_click")
     reply_markup = InlineKeyboardMarkup([[boton_join]])
 
     await update.message.reply_text(
